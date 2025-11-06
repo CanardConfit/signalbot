@@ -17,6 +17,7 @@ class MessageType(Enum):
     EDIT_MESSAGE = 3  # Message received is an edit of a previous message
     DELETE_MESSAGE = 4  # Message received is a remote delete of a previous message
     READ_MESSAGE = 5  # User readed some messages
+    CONTACT_SYNC_MESSAGE = 6  # Message received is a contact sync
 
 
 class Message:
@@ -150,6 +151,32 @@ class Message:
                         remote_delete_timestamp=None,
                         raw_message=raw_message_str,
                     )
+
+                if "type" in sync_message:
+                    sync_type = sync_message["type"]
+                    if sync_type == "CONTACTS_SYNC":
+                        return cls(
+                            source,
+                            source_number,
+                            source_uuid,
+                            timestamp,
+                            message_type=MessageType.CONTACT_SYNC_MESSAGE,
+                            text="",
+                            base64_attachments=[],
+                            attachments_local_filenames=[],
+                            view_once=view_once,
+                            link_previews=[],
+                            group=None,
+                            reaction=None,
+                            mentions=[],
+                            quote=None,
+                            target_sent_timestamp=envelope["timestamp"],
+                            remote_delete_timestamp=None,
+                            raw_message=raw_message_str,
+                        )
+
+                    # Unknow message type, a new?
+                    raise UnknownMessageFormatError
 
                 message_type = MessageType.SYNC_MESSAGE
                 data_message = sync_message["sentMessage"]
